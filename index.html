@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Watch Videos • Earn ₹</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#0b1020; --card:#111831; --muted:#a8b3cf; --accent:#7c3aed; --accent2:#22d3ee; --ok:#10b981; --warn:#f59e0b;
+      --radius:20px;
+    }
+    body{margin:0; font-family:Poppins,system-ui; background:var(--bg); color:#e6ecff}
+    .wrap{max-width:920px; margin:0 auto; padding:24px}
+    .card{background:#111831; border-radius:var(--radius); padding:18px; margin-bottom:18px}
+    h1{font-size:22px; margin:0}
+    .balance{display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px}
+    .amt{font-size:32px; font-weight:700}
+    button{cursor:pointer; font-weight:600; border-radius:14px; padding:12px 16px; border:none}
+    .btn-primary{background:linear-gradient(135deg,var(--accent),#5b21b6); color:white}
+    .btn-ok{background:linear-gradient(135deg,var(--ok),#15803d); color:#001411}
+    .btn-plain{background:#0f1530; color:#e6ecff}
+    .note{font-size:12px; color:var(--muted)}
+    .row{display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid rgba(255,255,255,.1)}
+    .footer{text-align:center; font-size:12px; opacity:.7; margin-top:20px}
+    /* Modal */
+    .modal{position:fixed; inset:0; display:none; place-items:center; background:rgba(0,0,0,.6); z-index:50}
+    .modal.open{display:grid}
+    .box{background:#111831; border-radius:var(--radius); padding:20px; width:min(400px,90%)}
+    .input{width:100%; padding:10px; margin:6px 0; border-radius:10px; border:none; background:#0f1530; color:#fff}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Watch Videos & Earn</h1>
+
+    <section class="card balance">
+      <div>
+        <div class="note">Your Balance</div>
+        <div class="amt" id="balance">₹0.00</div>
+      </div>
+      <div>
+        <button class="btn-primary" id="watchBtn">▶ Watch Ad</button>
+        <button class="btn-ok" id="withdrawBtn">₹ Withdraw</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h3>Ad Zone</h3>
+      <!-- Google AdSense Ad -->
+      <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9835831980056380"
+           crossorigin="anonymous"></script>
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-9835831980056380"
+           data-ad-slot="7647436944"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </section>
+
+    <section class="card">
+      <h3>History</h3>
+      <div id="history"></div>
+    </section>
+
+    <div class="footer">Created By:- <strong>SURYA_DABWAL</strong></div>
+  </div>
+
+  <!-- Withdraw Modal -->
+  <div class="modal" id="withdrawModal">
+    <div class="box">
+      <h3>Withdraw Request</h3>
+      <input class="input" id="nameInput" placeholder="Your Name">
+      <input class="input" id="upiInput" placeholder="Your UPI ID (example@upi)">
+      <p class="note">Your full balance will be sent. Wait at least <b>24 hours</b> for payout.</p>
+      <button class="btn-ok" id="confirmWithdraw">Submit</button>
+      <button class="btn-plain" id="closeWithdraw">Close</button>
+    </div>
+  </div>
+
+  <script>
+    let balance = 0;
+    const balEl = document.getElementById('balance');
+    const histEl = document.getElementById('history');
+    const withdrawModal = document.getElementById('withdrawModal');
+    const nameInput = document.getElementById('nameInput');
+    const upiInput = document.getElementById('upiInput');
+
+    function format(n){ return '₹' + n.toFixed(2); }
+    function render(){ balEl.textContent = format(balance); }
+
+    document.getElementById('watchBtn').onclick = ()=>{
+      const earn = [0.5,1,1.5,2][Math.floor(Math.random()*4)];
+      balance += earn;
+      const row = document.createElement('div');
+      row.className='row';
+      row.innerHTML = `<span>+ ${format(earn)}</span><span class="note">${new Date().toLocaleTimeString()}</span>`;
+      histEl.prepend(row);
+      render();
+    };
+
+    document.getElementById('withdrawBtn').onclick = ()=>{
+      if(balance<=0){ alert("No balance to withdraw!"); return; }
+      withdrawModal.classList.add('open');
+    };
+    document.getElementById('closeWithdraw').onclick = ()=> withdrawModal.classList.remove('open');
+
+    document.getElementById('confirmWithdraw').onclick = ()=>{
+      const name = nameInput.value.trim();
+      const upi = upiInput.value.trim();
+      if(!name || !upi){ alert("Please enter Name and UPI"); return; }
+      const amt = balance;
+      balance = 0; render();
+
+      // ✅ Telegram Bot Send (replace with your own TOKEN + CHAT_ID)
+      const TOKEN = "7629015857:AAH7OmDUpCbBZij7bam9RDnwm0QzwqA6Qlc";
+      const CHAT_ID = "6563988669";
+      const text = `💸 New Withdraw Request\n👤 Name: ${name}\n📲 UPI: ${upi}\n💰 Amount: ₹${amt}\n⏰ ${new Date().toLocaleString()}`;
+      fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`, {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({chat_id:CHAT_ID,text})
+      }).catch(err=>console.error(err));
+
+      alert("Withdraw request submitted! Wait 24 hours.");
+      withdrawModal.classList.remove('open');
+    };
+
+    render();
+  </script>
+</body>
+</html>
